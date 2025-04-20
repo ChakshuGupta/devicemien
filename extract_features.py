@@ -86,7 +86,6 @@ def extract_features(packet, flow_start):
     feature_vector.dport = packet["TCP"].dport
     feature_vector.flags = int(packet["TCP"].flags)
     feature_vector.window = packet["TCP"].window
-    feature_vector.payload = packet["TCP"].payload
 
     print(feature_vector.__dict__)
     return feature_vector.__dict__    
@@ -113,8 +112,8 @@ def get_flow_windows(flows, mac_addrs):
             window = flow_pkts[i: i + SEQ_LEN]
             try:
                 features = [extract_features(packet, flow_start) for packet in window]
-                print(features)
-                dataset.append((len(features), features, device))
+                df_features = pd.DataFrame.from_dict(features)
+                dataset.append((df_features, device))
             except Exception:
                 print("ERROR!")
                 continue

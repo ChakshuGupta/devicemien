@@ -1,4 +1,4 @@
-class FeatureVector(object):
+class FeatureVector:
 
     def __init__(self):
         """
@@ -10,5 +10,5 @@ class FeatureVector(object):
         self.direction = None
         self.flags = None
         self.window = None
-        self.payload = None
+        # self.payload = None
         self.length = None
