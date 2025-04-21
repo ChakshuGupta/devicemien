@@ -82,10 +82,9 @@ def extract_features(packet, flow_start):
     feature_vector.time_delta = packet.time - flow_start
     feature_vector.length = len(packet)
     feature_vector.direction = get_direction(packet)
-    feature_vector.sport = packet["TCP"].sport
-    feature_vector.dport = packet["TCP"].dport
     feature_vector.flags = int(packet["TCP"].flags)
     feature_vector.window = packet["TCP"].window
+    feature_vector.ttl = packet["IP"].ttl
 
     print(feature_vector.__dict__)
     return feature_vector.__dict__    
