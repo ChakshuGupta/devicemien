@@ -2,6 +2,7 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+import random
 import sys
 
 from sklearn.metrics import classification_report
@@ -11,6 +12,17 @@ from extract_features import extract_flows, get_flow_windows
 from objects.device_classifier import DeviceClassifier
 from train_test import *
 from util import get_pcap_list, load_device_file
+
+
+def full_reproducibility(seed=42):
+    import os
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 if __name__ == "__main__":
@@ -34,6 +46,8 @@ if __name__ == "__main__":
 
     if not os.path.isdir(dataset_path):
         print("ERROR! Dataset path doesn't exist!")
+    
+    full_reproducibility()
     
     if os.path.isfile(features_file):
         dataset_x = pickle.load(open(features_file, "rb"))
@@ -59,7 +73,7 @@ if __name__ == "__main__":
     y_pred_all = []
     y_prob_all = []
     # Declare the stratified k fold object
-    skf = StratifiedKFold(n_splits=2)
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1234)
     idx = 0
     # Loop through the different folds
     for train_index, test_index in skf.split(dataset_x, dataset_y):

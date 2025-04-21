@@ -8,7 +8,6 @@ from objects.feature_vector import FeatureVector
 
 SEQ_LEN = 10         # packets per sample
 
-
 def get_direction(packet):
     """
     Get the direction of the traffic: inbound (0) or outbound (1)
