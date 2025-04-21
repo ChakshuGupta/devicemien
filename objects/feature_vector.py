@@ -6,7 +6,9 @@ class FeatureVector:
         """
         self.time_delta = None
         self.direction = None
+        self.dport = None
         self.flags = None
         self.window = None
         self.length = None
         self.ttl = None
+        self.sport = None

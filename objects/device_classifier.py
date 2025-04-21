@@ -6,7 +6,7 @@ from scipy.spatial.distance import jensenshannon
 
 
 class DeviceClassifier:
-    def __init__(self, n_clusters=None, alpha=1, threshold=0.3, max_k=10):
+    def __init__(self, n_clusters=None, alpha=2, threshold=0.5, max_k=10):
         self.n_clusters = n_clusters
         self.alpha = alpha
         self.threshold = threshold
@@ -25,11 +25,11 @@ class DeviceClassifier:
         best_model = None
 
         for k in range(2, self.max_k + 1):
-            model = KMeans(n_clusters=k, random_state=42)
+            model = KMeans(n_clusters=k, random_state=1111, init='k-means++', n_init=30)
             labels = model.fit_predict(X)
 
             try:
-                score = silhouette_score(X, labels)
+                score = silhouette_score(X, labels, metric='euclidean')
             except:
                 continue  # In case a cluster ends up empty
 
@@ -46,16 +46,19 @@ class DeviceClassifier:
         if self.n_clusters is None:
             self._select_best_k(X)
         else:
-            self.kmeans = KMeans(n_clusters=self.n_clusters, random_state=42).fit(X)
+            self.kmeans = KMeans(n_clusters=self.n_clusters, random_state=1111, init='k-means++', n_init=30).fit(X)
 
         cluster_ids = self.kmeans.predict(X)
 
         label_to_clusters = defaultdict(list)
         for cid, label in zip(cluster_ids, y):
-            label_to_clusters[label[0]].append(cid)
-
+            if type(label) is np.ndarray:
+                label = label[0]
+            label_to_clusters[label].append(cid)
+    
         for label, cids in label_to_clusters.items():
             self.label_posteriors[label] = self._dirichlet_mean(np.array(cids))
+        print(self.label_posteriors)
 
     
     def predict(self, X_test):

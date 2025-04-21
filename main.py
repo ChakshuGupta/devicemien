@@ -46,6 +46,7 @@ if __name__ == "__main__":
         
         dataset_x, dataset_y = zip(*dataset)
         df_dataset_y = pd.DataFrame(dataset_y)
+        
         # Save the dataframes to pickle files    
         pickle.dump(dataset_x, open(features_file, "wb"))
         pickle.dump(df_dataset_y, open(labels_file, "wb"))
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     y_pred_all = []
     y_prob_all = []
     # Declare the stratified k fold object
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1111)
+    skf = StratifiedKFold(n_splits=2)
     idx = 0
     # Loop through the different folds
     for train_index, test_index in skf.split(dataset_x, dataset_y):
@@ -73,43 +74,17 @@ if __name__ == "__main__":
 
         x_train_encoded = x_train_encoded.detach().numpy()
 
-        # labels, probs, dist, kmeans = cluster_and_get_distribution_dirichlet(x_train_encoded, len(list_devices), 0.5)
-        # # print(list(zip(y_train, labels)))
-        # print(labels, probs, dist)
-        # print(kmeans.inertia_)
-        # print(kmeans.cluster_centers_)
-
         # Convert latent test vectors to numpy for clustering prediction
         print(x_test_encoded.shape)
         x_test_encoded = x_test_encoded.detach().numpy()
         print(x_test_encoded.shape)
-        # # Use the trained KMeans model to predict the clusters for the test data
-        # test_labels = kmeans.predict(x_test_encoded)
 
-        # # Print the cluster labels for the test data
-        # print("Test Data Cluster Labels:")
-        # print(x_test.shape, x_test_encoded.shape, test_labels.shape)
+        print(np.unique(dataset_y))
 
-        # 1. Train clustering model on known devices
-        
-        # k, kmeans = find_optimal_clusters(x_train_encoded, k_range=(len(list_devices), 3*len(list_devices)))
-        # # kmeans = build_cluster_model(x_train_encoded, num_clusters=len(list_devices))
-        # known_labels = kmeans.labels_
-
-        # # 2. Build known device profiles
-        # device_distributions = get_device_dirichlet_models(x_train_encoded, known_labels, kmeans, alpha_prior=1)
-        
-        # print(device_distributions)
-        # # 3. Check if new device is unknown
-        # is_unknown = is_unknown_device_dirichlet(x_test_encoded, kmeans, device_distributions, threshold=0.55)
-
-        # if is_unknown:
-        #     print("🚨 Unknown device detected!")
-        # else:
-        #     print("✅ Device matches a known profile.")
-
-        classifier = DeviceClassifier(max_k=2*len(list_devices))
+        classifier = DeviceClassifier(max_k=3*len(np.unique(dataset_y)))
+        print(classifier.n_clusters)
         classifier.fit(x_train_encoded, y_train)
+        print(classifier.n_clusters)
 
         y_preds, y_probs = classifier.predict(x_test_encoded)
         # print(list(zip(y_test, y_preds, y_probs)))
@@ -118,5 +93,5 @@ if __name__ == "__main__":
         y_pred_all.extend(y_preds)
         y_prob_all.extend(y_probs)
 
-    report = classification_report(y_true_all, y_pred_all)
+    report = classification_report(y_true_all, y_pred_all, zero_division=0.0)
     print(report)

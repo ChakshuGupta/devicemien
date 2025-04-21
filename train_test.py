@@ -1,10 +1,15 @@
-import numpy as np
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
+# import numpy as np
 import torch
+import torch.nn as nn
+
+# from collections import defaultdict, Counter
+# from scipy.stats import dirichlet
+# from scipy.spatial.distance import jensenshannon
+# from sklearn.cluster import KMeans
+# from sklearn.metrics import silhouette_score
+
 
 from objects.lstm import StackedAutoencoder
-# from objects.stacked_lstm_ae import StackedAutoencoder
 from util import convert_to_tensor
 
 
@@ -21,43 +26,42 @@ def lstmae_encode(x_train, x_test):
 
     n_seq, seq_len, n_features = x_train.shape
     
+    # ---------------------------
+    # Instantiate model
+    # ---------------------------
+    epochs = 20
+    lr = 1e-3
     model = StackedAutoencoder(seq_len, n_features)
+    
+    model.train()
+    for i, ae in enumerate(model.autoencoders):
+        print(f"\nTraining Autoencoder Layer {i+1}/{len(model.autoencoders)}")
+        optimizer = torch.optim.Adam(ae.parameters(), lr=lr)
+        criterion = nn.MSELoss()
 
-    encoded_train = model.encode(x_train)
-    encoded_test = model.encode(x_test)    
+        x_input = x_train
+        # Get input to this layer
+        if i > 0:
+            with torch.no_grad():
+                for j in range(i):
+                    _, code = model.autoencoders[j](x_input)
+                    code = code.unsqueeze(1).repeat(1, model.autoencoders[j].seq_len, 1)
+                    x_input = code
+    
+        for epoch in range(epochs):
+            ae.train()
+            optimizer.zero_grad()
+            output, _ = ae(x_input)
+            loss = criterion(output, x_input)
+            loss.backward()
+            optimizer.step()
+            if epoch % 5 == 0:
+                print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
+        print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
+
+    model.eval()
+    with torch.no_grad():
+        encoded_train = model.encode(x_train)
+        encoded_test = model.encode(x_test)    
 
     return encoded_train, encoded_test
-
-
-# Function to perform clustering and get distribution
-def cluster_and_get_distribution(encoded_input, num_clusters=10):
-    """
-    """
-    print(type(encoded_input))
-    # Perform K-Means clustering on the latent vectors
-    kmeans = KMeans(n_clusters=num_clusters, random_state=42)
-
-    encoded_input = encoded_input.detach().numpy()
-    kmeans.fit(encoded_input)
-
-    # Get the cluster labels for each sample
-    labels = kmeans.labels_
-
-    # Calculate the distribution (percentage) of samples per cluster
-    unique, counts = np.unique(labels, return_counts=True)
-    cluster_distribution = dict(zip(unique, counts))
-    total_samples = len(labels)
-    
-    print(f"Cluster Distribution (over {total_samples} samples):")
-    for cluster, count in cluster_distribution.items():
-        print(f"Cluster {cluster}: {count} samples ({(count / total_samples) * 100:.2f}%)")
-
-    # # Optional: Visualize the clusters if latent_dim is 2
-    # if encoded_input.shape[1] == 2:  # If latent vector has 2 dimensions
-    #     plt.scatter(encoded_input[:, 0], encoded_input[:, 1], c=labels, cmap='viridis')
-    #     plt.title('Clustered Latent Representations')
-    #     plt.xlabel('Latent Dim 1')
-    #     plt.ylabel('Latent Dim 2')
-    #     plt.show()
-
-    return labels, cluster_distribution, kmeans

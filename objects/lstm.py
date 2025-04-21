@@ -5,6 +5,7 @@ import torch.nn as nn
 class LSTMAutoencoder(nn.Module):
     def __init__(self, seq_len, input_dim, hidden_dim, latent_dim):
         super(LSTMAutoencoder, self).__init__()
+        self.input_dim = input_dim
         self.seq_len = seq_len
         self.encoder = nn.LSTM(input_dim, hidden_dim, batch_first=True)
         self.hidden_to_latent = nn.Linear(hidden_dim, latent_dim)
@@ -23,7 +24,7 @@ class LSTMAutoencoder(nn.Module):
 
 # Stacked Autoencoder
 class StackedAutoencoder(nn.Module):
-    def __init__(self, seq_len, input_dim=6, hidden_dims=[32, 16, 8], latent_dims=[16, 8, 4]):
+    def __init__(self, seq_len, input_dim=8, hidden_dims=[32, 16, 8], latent_dims=[16, 8, 4]):
         super(StackedAutoencoder, self).__init__()
         assert len(hidden_dims) == len(latent_dims)
         self.autoencoders = nn.ModuleList()

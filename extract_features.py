@@ -2,7 +2,6 @@ import ipaddress
 import numpy as np
 import pandas as pd
 
-from operator import attrgetter
 from scapy.all import *
 
 from objects.feature_vector import FeatureVector
@@ -80,8 +79,10 @@ def extract_features(packet, flow_start):
     feature_vector = FeatureVector()
 
     feature_vector.time_delta = packet.time - flow_start
-    feature_vector.length = len(packet)
     feature_vector.direction = get_direction(packet)
+    feature_vector.sport = packet["TCP"].sport
+    feature_vector.dport = packet["TCP"].dport
+    feature_vector.length = len(packet["TCP"])
     feature_vector.flags = int(packet["TCP"].flags)
     feature_vector.window = packet["TCP"].window
     feature_vector.ttl = packet["IP"].ttl
@@ -93,7 +94,6 @@ def extract_features(packet, flow_start):
 def get_flow_windows(flows, mac_addrs):
     # Create flow-based samples: N-packet windows
     dataset = list()
-
 
     for flow_pkts in flows.values():
         if len(flow_pkts) < SEQ_LEN:
@@ -113,8 +113,9 @@ def get_flow_windows(flows, mac_addrs):
                 features = [extract_features(packet, flow_start) for packet in window]
                 df_features = pd.DataFrame.from_dict(features)
                 dataset.append((df_features, device))
+                print(device)
             except Exception:
-                print("ERROR!")
+                print("ERROR! Could not extract the features!")
                 continue
 
     print(f"Generated {len(dataset)} flow samples")
