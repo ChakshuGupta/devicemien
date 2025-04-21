@@ -6,7 +6,7 @@ from scipy.spatial.distance import jensenshannon
 
 
 class DeviceClassifier:
-    def __init__(self, n_clusters=None, alpha=2, threshold=0.5, max_k=10):
+    def __init__(self, n_clusters=None, alpha=0.5, threshold=0.2, max_k=10):
         self.n_clusters = n_clusters
         self.alpha = alpha
         self.threshold = threshold
@@ -61,7 +61,7 @@ class DeviceClassifier:
         print(self.label_posteriors)
 
     
-    def predict(self, X_test):
+    def predict(self, X_test, if_unknown = False):
         """
         X_test: np.ndarray of shape (n_samples, n_features)
         Returns: list of predicted labels, one for each row in X_test
@@ -84,7 +84,10 @@ class DeviceClassifier:
                     best_score = js
                     best_label = label
 
-            predictions.append(best_label if best_score < self.threshold else "Unknown")
+            if if_unknown:
+                predictions.append(best_label if best_score < self.threshold else "Unknown")
+            else:
+                predictions.append(best_label)
             probs.append(best_score)
 
         return predictions, probs

@@ -10,7 +10,7 @@ from sklearn.model_selection import StratifiedKFold
 
 from extract_features import extract_flows, get_flow_windows
 from objects.device_classifier import DeviceClassifier
-from train_test import *
+from train_test import train_lstm_ae, encode_data
 from util import get_pcap_list, load_device_file
 
 
@@ -83,7 +83,10 @@ if __name__ == "__main__":
         x_test = dataset_x[test_index]
         y_test = dataset_y[test_index]
 
-        x_train_encoded, x_test_encoded = lstmae_encode(x_train, x_test)
+        model = train_lstm_ae(x_train)
+
+        x_train_encoded = encode_data(model, x_train)
+        x_test_encoded = encode_data(model, x_test)
         print(x_train_encoded, x_test_encoded)
 
         x_train_encoded = x_train_encoded.detach().numpy()

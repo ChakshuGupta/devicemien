@@ -13,14 +13,12 @@ from objects.lstm import StackedAutoencoder
 from util import convert_to_tensor
 
 
-def lstmae_encode(x_train, x_test):
+def train_lstm_ae(x_train):
     """
     """
 
     # Convert the dataframes to tensors
     x_train = convert_to_tensor(x_train)
-    x_test = convert_to_tensor(x_test)
-
 
     print(x_train.shape)
 
@@ -58,10 +56,16 @@ def lstmae_encode(x_train, x_test):
             if epoch % 5 == 0:
                 print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
         print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
+    
+    return model
+
+
+def encode_data(model, data):
+    # Convert the dataframes to tensors
+    data = convert_to_tensor(data)
 
     model.eval()
     with torch.no_grad():
-        encoded_train = model.encode(x_train)
-        encoded_test = model.encode(x_test)    
+        encoded_data = model.encode(data) 
 
-    return encoded_train, encoded_test
+    return encoded_data
