@@ -103,8 +103,10 @@ def get_flow_windows(flows, mac_addrs):
 
         if flow_pkts[0]["Ether"].src in mac_addrs:
             device = mac_addrs[flow_pkts[0]["Ether"].src]
-        else:
+        elif flow_pkts[0]["Ether"].dst in mac_addrs:
             device = mac_addrs[flow_pkts[0]["Ether"].dst]
+        else:
+            continue
 
         for i in range(len(flow_pkts) - SEQ_LEN + 1):
             window = flow_pkts[i: i + SEQ_LEN]
