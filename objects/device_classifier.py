@@ -1,8 +1,10 @@
 from sklearn.metrics import silhouette_score
-from sklearn.cluster import KMeans
+# from sklearn.cluster import KMeans
+from kmeans_pytorch import kmeans, kmeans_predict
 import numpy as np
 from collections import defaultdict
 from scipy.spatial.distance import jensenshannon
+import torch
 
 
 class DeviceClassifier:
@@ -13,6 +15,10 @@ class DeviceClassifier:
         self.kmeans = None
         self.label_posteriors = {}
         self.max_k = max_k
+        if torch.cuda.is_available():
+            self.device = torch.device('cuda:0')
+        else:
+            self.device = torch.device('cpu')
 
     def _dirichlet_mean(self, cluster_ids):
         counts = np.bincount(cluster_ids, minlength=self.n_clusters)
@@ -23,10 +29,11 @@ class DeviceClassifier:
         best_score = -1
         best_k = 2
         best_model = None
+        self.labels = None
 
         for k in range(2, self.max_k + 1):
-            model = KMeans(n_clusters=k, random_state=1111, init='k-means++', n_init=30)
-            labels = model.fit_predict(X)
+            # model = KMeans(n_clusters=k, tolerance=1e-4, distance='euclidean')
+            labels, cluster_centers = kmeans(X=X, num_clusters=k, distance='euclidean', device=self.device)
 
             try:
                 score = silhouette_score(X, labels, metric='euclidean')
@@ -36,7 +43,8 @@ class DeviceClassifier:
             if score > best_score:
                 best_score = score
                 best_k = k
-                best_model = model
+                best_model = cluster_centers
+                self.labels = labels
 
         self.kmeans = best_model
         self.n_clusters = best_k
@@ -46,9 +54,9 @@ class DeviceClassifier:
         if self.n_clusters is None:
             self._select_best_k(X)
         else:
-            self.kmeans = KMeans(n_clusters=self.n_clusters, random_state=1111, init='k-means++', n_init=30).fit(X)
+            self.labels, self.kmeans = kmeans(X=X, num_clusters=self.n_clusters, distance='euclidean', device=self.device)
 
-        cluster_ids = self.kmeans.predict(X)
+        cluster_ids = kmeans_predict(X, self.kmeans, 'euclidean', device=self.device)
 
         label_to_clusters = defaultdict(list)
         for cid, label in zip(cluster_ids, y):
@@ -68,7 +76,7 @@ class DeviceClassifier:
         """
         predictions = []
         probs = []
-        cluster_ids = self.kmeans.predict(X_test)
+        cluster_ids = kmeans_predict(X_test, self.kmeans, 'euclidean', device=self.device)
 
         # For each row (flow), make a prediction
         for i in range(len(X_test)):

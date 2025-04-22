@@ -4,6 +4,7 @@ import pandas as pd
 import pickle
 import random
 import sys
+import torch
 
 from sklearn.metrics import classification_report
 from sklearn.model_selection import StratifiedKFold
@@ -14,7 +15,7 @@ from train_test import train_lstm_ae, encode_data
 from util import get_pcap_list, load_device_file
 
 
-def full_reproducibility(seed=42):
+def full_reproducibility(seed=123):
     import os
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
@@ -89,16 +90,16 @@ if __name__ == "__main__":
         x_test_encoded = encode_data(model, x_test)
         print(x_train_encoded, x_test_encoded)
 
-        x_train_encoded = x_train_encoded.detach().numpy()
+        x_train_encoded = x_train_encoded.detach()
 
         # Convert latent test vectors to numpy for clustering prediction
         print(x_test_encoded.shape)
-        x_test_encoded = x_test_encoded.detach().numpy()
+        x_test_encoded = x_test_encoded.detach()
         print(x_test_encoded.shape)
 
         print(np.unique(dataset_y))
 
-        classifier = DeviceClassifier(max_k=3*len(np.unique(dataset_y)))
+        classifier = DeviceClassifier(n_clusters = len(np.unique(dataset_y)), max_k=3*len(np.unique(dataset_y)))
         print(classifier.n_clusters)
         classifier.fit(x_train_encoded, y_train)
         print(classifier.n_clusters)
