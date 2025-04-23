@@ -8,7 +8,7 @@ import torch
 
 
 class DeviceClassifier:
-    def __init__(self, n_clusters=None, alpha=2, threshold=0.5, max_k=10):
+    def __init__(self, n_clusters=None, alpha=0.1, threshold=0.5, max_k=10):
         self.n_clusters = n_clusters
         self.alpha = alpha
         self.threshold = threshold
@@ -33,7 +33,7 @@ class DeviceClassifier:
 
         for k in range(2, self.max_k + 1):
             # model = KMeans(n_clusters=k, tolerance=1e-4, distance='euclidean')
-            labels, cluster_centers = kmeans(X=X, num_clusters=k, distance='euclidean', device=self.device, seed=1234)
+            labels, cluster_centers = kmeans(X=X, num_clusters=k, distance='cosine', device=self.device, seed=1234)
 
             try:
                 score = silhouette_score(X, labels, metric='euclidean')
@@ -54,9 +54,9 @@ class DeviceClassifier:
         if self.n_clusters is None:
             self._select_best_k(X)
         else:
-            self.labels, self.kmeans = kmeans(X=X, num_clusters=self.n_clusters, distance='euclidean', device=self.device, seed=1234)
+            self.labels, self.kmeans = kmeans(X=X, num_clusters=self.n_clusters, distance='cosine', device=self.device, seed=1234)
 
-        cluster_ids = kmeans_predict(X, self.kmeans, 'euclidean', device=self.device)
+        cluster_ids = kmeans_predict(X, self.kmeans, 'cosine', device=self.device)
 
         label_to_clusters = defaultdict(list)
         for cid, label in zip(cluster_ids, y):
@@ -76,7 +76,7 @@ class DeviceClassifier:
         """
         predictions = []
         probs = []
-        cluster_ids = kmeans_predict(X_test, self.kmeans, 'euclidean', device=self.device)
+        cluster_ids = kmeans_predict(X_test, self.kmeans, 'cosine', device=self.device)
 
         # For each row (flow), make a prediction
         for i in range(len(X_test)):
