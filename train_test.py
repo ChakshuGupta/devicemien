@@ -31,31 +31,31 @@ def train_lstm_ae(x_train):
     lr = 1e-3
     model = StackedAutoencoder(seq_len, n_features)
     
-    model.train()
-    for i, ae in enumerate(model.autoencoders):
-        print(f"\nTraining Autoencoder Layer {i+1}/{len(model.autoencoders)}")
-        optimizer = torch.optim.Adam(ae.parameters(), lr=lr)
-        criterion = nn.MSELoss()
+    # model.train()
+    # for i, ae in enumerate(model.autoencoders):
+    #     print(f"\nTraining Autoencoder Layer {i+1}/{len(model.autoencoders)}")
+    #     optimizer = torch.optim.Adam(ae.parameters(), lr=lr)
+    #     criterion = nn.MSELoss()
 
-        x_input = x_train
-        # Get input to this layer
-        if i > 0:
-            with torch.no_grad():
-                for j in range(i):
-                    _, code = model.autoencoders[j](x_input)
-                    code = code.unsqueeze(1).repeat(1, model.autoencoders[j].seq_len, 1)
-                    x_input = code
+    #     x_input = x_train
+    #     # Get input to this layer
+    #     if i > 0:
+    #         with torch.no_grad():
+    #             for j in range(i):
+    #                 _, code = model.autoencoders[j](x_input)
+    #                 code = code.unsqueeze(1).repeat(1, model.autoencoders[j].seq_len, 1)
+    #                 x_input = code
     
-        for epoch in range(epochs):
-            ae.train()
-            optimizer.zero_grad()
-            output, _ = ae(x_input)
-            loss = criterion(output, x_input)
-            loss.backward()
-            optimizer.step()
-            if epoch % 5 == 0:
-                print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
-        print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
+    #     for epoch in range(epochs):
+    #         ae.train()
+    #         optimizer.zero_grad()
+    #         output, _ = ae(x_input)
+    #         loss = criterion(output, x_input)
+    #         loss.backward()
+    #         optimizer.step()
+    #         if epoch % 5 == 0:
+    #             print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
+    #     print(f"  Epoch {epoch} - Loss: {loss.item():.4f}")
     
     return model
 

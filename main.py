@@ -74,7 +74,7 @@ if __name__ == "__main__":
     y_pred_all = []
     y_prob_all = []
     # Declare the stratified k fold object
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=1234)
+    skf = StratifiedKFold(n_splits=2, shuffle=True, random_state=1234)
     idx = 0
     # Loop through the different folds
     for train_index, test_index in skf.split(dataset_x, dataset_y):
