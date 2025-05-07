@@ -8,8 +8,9 @@ import torch
 
 
 class DeviceClassifier:
-    def __init__(self, n_clusters=None, alpha=0.1, threshold=0.5, max_k=10):
+    def __init__(self, n_clusters=None, unique_label=2, alpha=0.1, threshold=0.5, max_k=10):
         self.n_clusters = n_clusters
+        self.unique_label = unique_label
         self.alpha = alpha
         self.threshold = threshold
         self.kmeans = None
@@ -25,36 +26,36 @@ class DeviceClassifier:
         alpha_post = counts + self.alpha
         return alpha_post / alpha_post.sum()
 
-    # def _select_best_k(self, X):
-    #     best_score = -1
-    #     best_k = 2
-    #     best_model = None
-    #     self.labels = None
+    def _select_best_k(self, X):
+        best_score = -1
+        best_k = self.unique_label
+        best_model = None
+        self.labels = None
 
-    #     for k in range(2, self.max_k + 1):
-    #         # model = KMeans(n_clusters=k, tolerance=1e-4, distance='euclidean')
-    #         labels, cluster_centers = kmeans(X=X, num_clusters=k, distance='cosine', device=self.device, seed=1234)
+        for k in range(2, self.max_k + 1):
+            # model = KMeans(n_clusters=k, tolerance=1e-4, distance='euclidean')
+            labels, cluster_centers = kmeans(X=X, num_clusters=k, distance='euclidean', device=self.device, seed=1234)
 
-    #         try:
-    #             score = silhouette_score(X, labels, metric='euclidean')
-    #         except:
-    #             continue  # In case a cluster ends up empty
+            try:
+                score = silhouette_score(X, labels, metric='euclidean')
+            except:
+                continue  # In case a cluster ends up empty
 
-    #         if score > best_score:
-    #             best_score = score
-    #             best_k = k
-    #             best_model = cluster_centers
-    #             self.labels = labels
+            if score > best_score:
+                best_score = score
+                best_k = k
+                best_model = cluster_centers
+                self.labels = labels
 
-    #     self.kmeans = best_model
-    #     self.n_clusters = best_k
-    #     print(f"Selected optimal k={best_k} with silhouette score={best_score:.3f}")
+        self.kmeans = best_model
+        self.n_clusters = best_k
+        print(f"Selected optimal k={best_k} with silhouette score={best_score:.3f}")
 
     def fit(self, X, y):
-        # if self.n_clusters is None:
-        #     self._select_best_k(X)
-        # else:
-        self.labels, self.kmeans = kmeans(X=X, num_clusters=self.n_clusters, distance='euclidean', device=self.device, seed=1234)
+        if self.n_clusters is None:
+            self._select_best_k(X)
+        else:
+            self.labels, self.kmeans = kmeans(X=X, num_clusters=self.n_clusters, distance='euclidean', device=self.device, seed=1234)
 
         cluster_ids = kmeans_predict(X, self.kmeans, 'euclidean', device=self.device)
 

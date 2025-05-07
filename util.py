@@ -1,6 +1,7 @@
 import numpy as np
 import os
-import torch
+# # import torch
+# import tensorflowas tf
 
 def load_device_file(device_file):
    """
@@ -33,10 +34,10 @@ def get_pcap_list(dataset_dir):
     return pcap_files
 
 
-def convert_to_tensor(features):
-    """
-    """
-    # Convert features to tensor format
-    tensor_features = torch.from_numpy(features.astype(np.float32))
+# def convert_to_tensor(features):
+#     """
+#     """
+#     # Convert features to tensor format
+#     tensor_features = torch.from_numpy(features.astype(np.float32))
 
-    return tensor_features
+#     return tensor_features

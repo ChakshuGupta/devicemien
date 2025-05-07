@@ -1,24 +1,26 @@
 # import numpy as np
-import torch
-import torch.nn as nn
+# import torch
+# import torch.nn as nn
 
 # from collections import defaultdict, Counter
 # from scipy.stats import dirichlet
 # from scipy.spatial.distance import jensenshannon
-# from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
 # from sklearn.metrics import silhouette_score
 
-
-from objects.lstm import StackedAutoencoder
-from util import convert_to_tensor
+import tensorflow as tf
+from objects.lstm_tf import StackedLSTMAutoencoder
+# from objects.lstm import StackedAutoencoder
+# from util import convert_to_tensor
 
 
 def train_lstm_ae(x_train):
     """
     """
+    tf.experimental.numpy.experimental_enable_numpy_behavior()
 
     # Convert the dataframes to tensors
-    x_train = convert_to_tensor(x_train)
+    x_train = tf.convert_to_tensor(x_train, dtype=tf.float32)
 
     print(x_train.shape)
 
@@ -29,7 +31,8 @@ def train_lstm_ae(x_train):
     # ---------------------------
     epochs = 20
     lr = 1e-3
-    model = StackedAutoencoder(seq_len, n_features)
+    model = StackedLSTMAutoencoder(seq_len, n_features)
+    model.fit(x_train, epochs)
     
     # model.train()
     # for i, ae in enumerate(model.autoencoders):
@@ -62,10 +65,7 @@ def train_lstm_ae(x_train):
 
 def encode_data(model, data):
     # Convert the dataframes to tensors
-    data = convert_to_tensor(data)
-
-    model.eval()
-    with torch.no_grad():
-        encoded_data = model.encode(data) 
+    data = tf.convert_to_tensor(data, dtype=tf.float32)
+    encoded_data = model.encode(data) 
 
     return encoded_data
