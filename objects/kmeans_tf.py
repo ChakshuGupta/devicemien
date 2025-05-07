@@ -3,7 +3,7 @@ import numpy as np
 from collections import Counter
 
 class KMeansTF:
-    def __init__(self, n_clusters=3, n_iterations=100, seed=None):
+    def __init__(self, n_clusters=3, n_iterations=150, seed=None):
         self.n_clusters = n_clusters
         self.n_iterations = n_iterations
         self.centroids = None
@@ -80,7 +80,7 @@ class KMeansTF:
 
         if if_unknown:
             for i in range(len(mapped_labels)):
-                if max_probs[i] < 0.5:
+                if max_probs[i] < 0.45:
                     mapped_labels[i] = "Unknown"
 
         
