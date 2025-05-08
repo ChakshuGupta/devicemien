@@ -99,10 +99,13 @@ if __name__ == "__main__":
         print(x_test_encoded.shape)
 
         print(np.unique(dataset_y))
+        num_classes = len(np.unique(dataset_y))
 
         # classifier = DeviceClassifier(unique_label = len(np.unique(dataset_y)), max_k=3*len(np.unique(dataset_y)))
-        classifier =  KMeansTF(n_clusters=len(np.unique(dataset_y))+1)
-        classifier.fit(x_train_encoded, y_train)
+        classifier =  KMeansTF(seed=1234)
+        best_k = classifier.tune_k(x_train_encoded, y_train, k_range=(num_classes, 2*num_classes))
+
+        # classifier.fit(x_train_encoded, y_train)
         # print(classifier.n_clusters)
         # classifier.fit(x_train_encoded, y_train)
         # print(classifier.n_clusters)

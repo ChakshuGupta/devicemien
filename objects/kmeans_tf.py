@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from collections import Counter
+from sklearn.metrics import silhouette_score
 
 class KMeansTF:
     def __init__(self, n_clusters=3, n_iterations=150, seed=None):
@@ -85,3 +86,29 @@ class KMeansTF:
 
         
         return mapped_labels, max_probs.tolist()
+    
+
+    def tune_k(self, X, y_true=None, k_range=(2, 10)):
+        if len(X.shape) == 3:
+            X_flat = tf.reduce_mean(X, axis=1).numpy()
+        else:
+            X_flat = X.numpy() if isinstance(X, tf.Tensor) else X
+
+        best_k = self.n_clusters
+        best_score = -1
+
+        for k in range(k_range[0], k_range[1] + 1):
+            self.n_clusters = k
+            self.fit(X, y_true)
+            try:
+                score = silhouette_score(X_flat, self.labels_)
+                if score > best_score:
+                    best_score = score
+                    best_k = k
+            except Exception:
+                continue
+
+        self.n_clusters = best_k
+        self.fit(X, y_true)
+        print(f"Best k selected: {best_k} with silhouette score: {best_score:.4f}")
+        return best_k
