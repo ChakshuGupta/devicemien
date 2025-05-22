@@ -4,7 +4,7 @@ from collections import Counter
 from sklearn.metrics import silhouette_score
 
 class KMeansTF:
-    def __init__(self, n_clusters=3, n_iterations=150, seed=None):
+    def __init__(self, n_clusters=3, n_iterations=500, seed=None):
         self.n_clusters = n_clusters
         self.n_iterations = n_iterations
         self.centroids = None
@@ -57,7 +57,7 @@ class KMeansTF:
             else:
                 self.cluster_to_label[c] = -1
 
-    def predict(self, X, if_unknown = False):
+    def predict(self, X):
         if len(X.shape) == 3:
             X = tf.reduce_mean(X, axis=1)
         X = tf.convert_to_tensor(X, dtype=tf.float32)
@@ -78,12 +78,6 @@ class KMeansTF:
         
         # Return the label and its associated cluster probability
         max_probs = np.max(probs, axis=1)
-
-        if if_unknown:
-            for i in range(len(mapped_labels)):
-                if max_probs[i] < 0.45:
-                    mapped_labels[i] = "Unknown"
-
         
         return mapped_labels, max_probs.tolist()
     
